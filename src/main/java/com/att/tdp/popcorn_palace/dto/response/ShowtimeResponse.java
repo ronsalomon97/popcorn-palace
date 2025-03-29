@@ -1,37 +1,21 @@
-package com.att.tdp.popcorn_palace.model;
+package com.att.tdp.popcorn_palace.dto.response;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "showtime")
-public class Showtime {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class ShowtimeResponse {
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "movie_id", nullable = false)
-    private Movie movie;
-
-    @Column(nullable = false)
+    private String movieTitle;
     private String theater;
-
-    @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;
-
-    @Column(name = "end_time", nullable = false)
     private LocalDateTime endTime;
-
-    @Column(nullable = false)
     private Double price;
 
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public Movie getMovie() { return movie; }
-    public void setMovie(Movie movie) { this.movie = movie; }
+    public String getMovieTitle() { return movieTitle; }
+    public void setMovieTitle(String movieTitle) { this.movieTitle = movieTitle; }
 
     public String getTheater() { return theater; }
     public void setTheater(String theater) { this.theater = theater; }

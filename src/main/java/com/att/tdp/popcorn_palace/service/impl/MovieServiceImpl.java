@@ -3,7 +3,7 @@ package com.att.tdp.popcorn_palace.service.impl;
 import com.att.tdp.popcorn_palace.dto.request.MovieRequest;
 import com.att.tdp.popcorn_palace.dto.response.MovieResponse;
 import com.att.tdp.popcorn_palace.exception.DuplicateMovieTitleException;
-import com.att.tdp.popcorn_palace.exception.MovieNotFoundException;
+import com.att.tdp.popcorn_palace.exception.ResourceNotFoundException;
 import com.att.tdp.popcorn_palace.mapper.MovieMapper;
 import com.att.tdp.popcorn_palace.model.Movie;
 import com.att.tdp.popcorn_palace.repository.MovieRepository;
@@ -50,7 +50,7 @@ public class MovieServiceImpl implements MovieService {
     @Transactional
     public void updateMovie(String movieTitle, MovieRequest request) {
         Movie existingMovie = movieRepository.findByTitle(movieTitle)
-                .orElseThrow(() -> new MovieNotFoundException("Movie not found with title: " + movieTitle));
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", "title", movieTitle));
         
         if (!movieTitle.equals(request.getTitle()) && 
             movieRepository.findByTitle(request.getTitle()).isPresent()) {
@@ -65,7 +65,7 @@ public class MovieServiceImpl implements MovieService {
     @Transactional
     public void deleteMovie(String movieTitle) {
         Movie movie = movieRepository.findByTitle(movieTitle)
-                .orElseThrow(() -> new MovieNotFoundException("Movie not found with title: " + movieTitle));
+                .orElseThrow(() -> new ResourceNotFoundException("Movie", "title", movieTitle));
         movieRepository.delete(movie);
     }
 } 

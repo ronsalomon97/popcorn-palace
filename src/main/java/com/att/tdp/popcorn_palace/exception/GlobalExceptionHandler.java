@@ -14,9 +14,10 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(MovieNotFoundException.class)
-    public ResponseEntity<String> handleMovieNotFoundException(MovieNotFoundException ex) {
-        return ResponseEntity.notFound().build();
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ex.getMessage());
     }
 
     @ExceptionHandler(DuplicateMovieTitleException.class)
@@ -47,6 +48,12 @@ public class GlobalExceptionHandler {
                     .body("A movie with this title already exists");
         }
         return ResponseEntity.internalServerError().body("An unexpected database error occurred");
+    }
+
+    @ExceptionHandler(OverlappingShowtimeException.class)
+    public ResponseEntity<String> handleOverlappingShowtimeException(OverlappingShowtimeException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
