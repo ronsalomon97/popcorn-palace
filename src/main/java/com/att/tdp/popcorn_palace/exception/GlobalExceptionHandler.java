@@ -56,6 +56,12 @@ public class GlobalExceptionHandler {
                 .body(ex.getMessage());
     }
 
+    @ExceptionHandler(SeatAlreadyBookedException.class)
+    public ResponseEntity<String> handleSeatAlreadyBookedException(SeatAlreadyBookedException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ex.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleGenericException(Exception ex) {
         return ResponseEntity.internalServerError().body("An unexpected error occurred");
