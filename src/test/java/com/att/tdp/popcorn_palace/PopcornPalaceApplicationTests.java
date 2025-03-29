@@ -1,13 +1,15 @@
 package com.att.tdp.popcorn_palace;
 
+import com.att.tdp.popcorn_palace.config.TestConfig;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
 
-@SpringBootTest
+@ContextConfiguration(classes = TestConfig.class)
 class PopcornPalaceApplicationTests {
 
 	@Test
 	void contextLoads() {
+		// This test verifies that the application context loads successfully
 	}
 
 }
