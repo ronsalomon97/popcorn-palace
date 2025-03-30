@@ -4,9 +4,11 @@ import com.att.tdp.popcorn_palace.dto.request.MovieRequest;
 import com.att.tdp.popcorn_palace.dto.response.MovieResponse;
 import com.att.tdp.popcorn_palace.exception.DuplicateMovieTitleException;
 import com.att.tdp.popcorn_palace.exception.ResourceNotFoundException;
+import com.att.tdp.popcorn_palace.exception.MovieHasShowtimesException;
 import com.att.tdp.popcorn_palace.mapper.MovieMapper;
 import com.att.tdp.popcorn_palace.model.Movie;
 import com.att.tdp.popcorn_palace.repository.MovieRepository;
+import com.att.tdp.popcorn_palace.repository.ShowtimeRepository;
 import com.att.tdp.popcorn_palace.service.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,11 +22,15 @@ public class MovieServiceImpl implements MovieService {
 
     private final MovieRepository movieRepository;
     private final MovieMapper movieMapper;
+    private final ShowtimeRepository showtimeRepository;
 
     @Autowired
-    public MovieServiceImpl(MovieRepository movieRepository, MovieMapper movieMapper) {
+    public MovieServiceImpl(MovieRepository movieRepository, 
+                           MovieMapper movieMapper,
+                           ShowtimeRepository showtimeRepository) {
         this.movieRepository = movieRepository;
         this.movieMapper = movieMapper;
+        this.showtimeRepository = showtimeRepository;
     }
 
     @Override
@@ -66,6 +72,14 @@ public class MovieServiceImpl implements MovieService {
     public void deleteMovie(String movieTitle) {
         Movie movie = movieRepository.findByTitle(movieTitle)
                 .orElseThrow(() -> new ResourceNotFoundException("Movie", "title", movieTitle));
+        
+        // Check if there are any showtimes associated with this movie
+        boolean hasShowtimes = showtimeRepository.existsByMovieId(movie.getId());
+        
+        if (hasShowtimes) {
+            throw new MovieHasShowtimesException(movieTitle);
+        }
+        
         movieRepository.delete(movie);
     }
 } 

@@ -24,15 +24,31 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             request.getRequestURI(),
             request.getRemoteAddr());
 
-        // Continue with the request
-        filterChain.doFilter(request, response);
-
-        // Log the response
-        long duration = System.currentTimeMillis() - startTime;
-        logger.info("RESPONSE: {} {} - {} ({} ms)", 
-            request.getMethod(),
-            request.getRequestURI(),
-            response.getStatus(),
-            duration);
+        try {
+            // Continue with the request
+            filterChain.doFilter(request, response);
+        } catch (Exception e) {
+            logger.error("Request processing failed: {} {} - Exception: ", 
+                request.getMethod(), 
+                request.getRequestURI(), 
+                e);
+            throw e;
+        } finally {
+            // Log the response
+            long duration = System.currentTimeMillis() - startTime;
+            if (response.getStatus() >= 500) {
+                logger.error("RESPONSE: {} {} - {} ({} ms)", 
+                    request.getMethod(),
+                    request.getRequestURI(),
+                    response.getStatus(),
+                    duration);
+            } else {
+                logger.info("RESPONSE: {} {} - {} ({} ms)", 
+                    request.getMethod(),
+                    request.getRequestURI(),
+                    response.getStatus(),
+                    duration);
+            }
+        }
     }
 } 

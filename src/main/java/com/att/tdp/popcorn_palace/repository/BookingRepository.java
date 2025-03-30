@@ -7,6 +7,6 @@ import java.util.UUID;
 import java.util.Optional;
 
 @Repository
-public interface BookingRepository extends JpaRepository<Booking, UUID> {
+public interface  BookingRepository extends JpaRepository<Booking, UUID> {
     boolean existsByShowtimeIdAndSeatNumber(Long showtimeId, Integer seatNumber);
 } 

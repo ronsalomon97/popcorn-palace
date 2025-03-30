@@ -16,7 +16,7 @@ public class ShowtimeMapper {
         showtime.setMovie(movie);
         showtime.setTheater(request.getTheater());
         showtime.setStartTime(request.getStartTime());
-        // End time will be calculated in service layer
+        showtime.setEndTime(request.getEndTime());
         showtime.setPrice(request.getPrice());
         return showtime;
     }
@@ -36,7 +36,7 @@ public class ShowtimeMapper {
         showtime.setMovie(movie);
         showtime.setTheater(request.getTheater());
         showtime.setStartTime(request.getStartTime());
-        // End time will be updated in service layer
+        showtime.setEndTime(request.getEndTime());
         showtime.setPrice(request.getPrice());
     }
 } 

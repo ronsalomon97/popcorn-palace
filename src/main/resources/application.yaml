@@ -18,3 +18,9 @@ spring:
   sql:
     init:
       mode: always
+
+logging:
+  level:
+    root: INFO
+    com.att.tdp.popcorn_palace: DEBUG
+    org.springframework.web: INFO

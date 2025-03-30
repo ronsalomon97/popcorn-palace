@@ -2,14 +2,17 @@ package com.att.tdp.popcorn_palace.controller;
 
 import com.att.tdp.popcorn_palace.dto.request.MovieRequest;
 import com.att.tdp.popcorn_palace.dto.response.MovieResponse;
+import com.att.tdp.popcorn_palace.logging.RequestLoggingFilter;
 import com.att.tdp.popcorn_palace.model.Movie;
 import com.att.tdp.popcorn_palace.service.MovieService;
 import jakarta.validation.Valid;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/movies")

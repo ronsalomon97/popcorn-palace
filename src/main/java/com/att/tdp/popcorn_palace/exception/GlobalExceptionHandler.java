@@ -1,69 +1,100 @@
 package com.att.tdp.popcorn_palace.exception;
 
 import jakarta.validation.ConstraintViolationException;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
-@ControllerAdvice
+@RestControllerAdvice  // Use RestControllerAdvice instead of ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ex.getMessage());
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    // Unified error response builder
+    private ResponseEntity<ApiErrorResponse> buildErrorResponse(
+            Exception ex, HttpStatus status, WebRequest request) {
+        return new ResponseEntity<>(
+                new ApiErrorResponse(
+                        status.value(),
+                        ex.getMessage(),
+                        request.getDescription(false),
+                        LocalDateTime.now()
+                ),
+                status
+        );
     }
 
-    @ExceptionHandler(DuplicateMovieTitleException.class)
-    public ResponseEntity<String> handleDuplicateMovieTitleException(DuplicateMovieTitleException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ex.getMessage());
+    // Handle not found errors
+    @ExceptionHandler({ResourceNotFoundException.class})
+    public ResponseEntity<ApiErrorResponse> handleNotFoundExceptions(
+            Exception ex, WebRequest request) {
+        return buildErrorResponse(ex, HttpStatus.NOT_FOUND, request);
     }
 
-    @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<List<String>> handleValidationException(ValidationException ex) {
-        return ResponseEntity.badRequest().body(ex.getErrors());
+    // Handle conflict errors
+    @ExceptionHandler({
+        DuplicateMovieTitleException.class,
+        OverlappingShowtimeException.class, 
+        SeatAlreadyBookedException.class,
+        MovieHasShowtimesException.class
+    })
+    public ResponseEntity<ApiErrorResponse> handleConflictExceptions(
+            Exception ex, WebRequest request) {
+        return buildErrorResponse(ex, HttpStatus.CONFLICT, request);
     }
 
+    // Handle validation errors with detailed field errors
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<List<String>> handleValidationErrors(MethodArgumentNotValidException ex) {
-        List<String> errors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .collect(Collectors.toList());
-        return ResponseEntity.badRequest().body(errors);
+    public ResponseEntity<ApiErrorResponse> handleValidationExceptions(
+            MethodArgumentNotValidException ex, WebRequest request) {
+        
+        Map<String, String> fieldErrors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error -> 
+            fieldErrors.put(error.getField(), error.getDefaultMessage())
+        );
+        
+        ApiErrorResponse errorResponse = new ApiErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation failed",
+                request.getDescription(false),
+                LocalDateTime.now()
+        );
+        errorResponse.setFieldErrors(fieldErrors);
+        
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
-        if (ex.getCause() instanceof ConstraintViolationException) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("A movie with this title already exists");
-        }
-        return ResponseEntity.internalServerError().body("An unexpected database error occurred");
+    // Handle bad request errors
+    @ExceptionHandler({
+        InvalidShowtimeDurationException.class,
+        HttpMessageNotReadableException.class,
+        IllegalArgumentException.class,
+        NumberFormatException.class
+    })
+    public ResponseEntity<ApiErrorResponse> handleBadRequestExceptions(
+            Exception ex, WebRequest request) {
+        return buildErrorResponse(ex, HttpStatus.BAD_REQUEST, request);
     }
 
-    @ExceptionHandler(OverlappingShowtimeException.class)
-    public ResponseEntity<String> handleOverlappingShowtimeException(OverlappingShowtimeException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ex.getMessage());
-    }
-
-    @ExceptionHandler(SeatAlreadyBookedException.class)
-    public ResponseEntity<String> handleSeatAlreadyBookedException(SeatAlreadyBookedException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ex.getMessage());
-    }
-
+    // Catch-all handler for unexpected errors
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGenericException(Exception ex) {
-        return ResponseEntity.internalServerError().body("An unexpected error occurred");
+    public ResponseEntity<ApiErrorResponse> handleAllUncaughtExceptions(
+            Exception ex, WebRequest request) {
+        logger.error("Uncaught exception", ex);
+        return buildErrorResponse(
+                new RuntimeException("An unexpected error occurred"), 
+                HttpStatus.INTERNAL_SERVER_ERROR, 
+                request
+        );
     }
 } 

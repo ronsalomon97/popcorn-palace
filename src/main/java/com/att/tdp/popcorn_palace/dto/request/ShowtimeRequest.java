@@ -13,6 +13,9 @@ public class ShowtimeRequest {
     @NotNull(message = "Start time is required")
     private LocalDateTime startTime;
 
+    @NotNull(message = "end time is required")
+    private LocalDateTime endTime;
+
     @DecimalMin(value = "0.0", message = "Price must be positive")
     private Double price;
 
@@ -25,6 +28,9 @@ public class ShowtimeRequest {
 
     public LocalDateTime getStartTime() { return startTime; }
     public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
+
+    public LocalDateTime getEndTime() { return endTime; }
+    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
 
     public Double getPrice() { return price; }
     public void setPrice(Double price) { this.price = price; }

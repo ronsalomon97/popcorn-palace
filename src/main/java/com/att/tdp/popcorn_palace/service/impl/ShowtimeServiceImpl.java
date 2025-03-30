@@ -4,6 +4,7 @@ import com.att.tdp.popcorn_palace.dto.request.ShowtimeRequest;
 import com.att.tdp.popcorn_palace.dto.response.ShowtimeResponse;
 import com.att.tdp.popcorn_palace.exception.OverlappingShowtimeException;
 import com.att.tdp.popcorn_palace.exception.ResourceNotFoundException;
+import com.att.tdp.popcorn_palace.exception.InvalidShowtimeDurationException;
 import com.att.tdp.popcorn_palace.mapper.ShowtimeMapper;
 import com.att.tdp.popcorn_palace.model.Movie;
 import com.att.tdp.popcorn_palace.model.Showtime;
@@ -44,17 +45,19 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     @Override
     @Transactional
     public ShowtimeResponse addShowtime(ShowtimeRequest request) {
+        // Validate end time is after start time
+        if (request.getEndTime().isBefore(request.getStartTime()) || request.getEndTime().equals(request.getStartTime())) {
+            throw new InvalidShowtimeDurationException();
+        }
+
         Movie movie = movieRepository.findByTitle(request.getMovieTitle())
                 .orElseThrow(() -> new ResourceNotFoundException("Movie", "title", request.getMovieTitle()));
-
-        // Calculate end time based on movie duration
-        LocalDateTime endTime = request.getStartTime().plusMinutes(movie.getDuration());
 
         // Check for overlapping showtimes
         List<Showtime> overlappingShowtimes = showtimeRepository.findOverlappingShowtimes(
                 request.getTheater(),
                 request.getStartTime(),
-                endTime
+                request.getEndTime()
         );
 
         if (!overlappingShowtimes.isEmpty()) {
@@ -62,7 +65,6 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         }
 
         Showtime showtime = showtimeMapper.toEntity(request, movie);
-        showtime.setEndTime(endTime);
         
         Showtime savedShowtime = showtimeRepository.save(showtime);
         return showtimeMapper.toResponse(savedShowtime);
@@ -71,20 +73,22 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     @Override
     @Transactional
     public void updateShowtime(Long id, ShowtimeRequest request) {
+        // Validate end time is after start time
+        if (request.getEndTime().isBefore(request.getStartTime()) || request.getEndTime().equals(request.getStartTime())) {
+            throw new InvalidShowtimeDurationException();
+        }
+
         Showtime existingShowtime = showtimeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Showtime", "id", id.toString()));
 
         Movie movie = movieRepository.findByTitle(request.getMovieTitle())
                 .orElseThrow(() -> new ResourceNotFoundException("Movie", "title", request.getMovieTitle()));
 
-        // Calculate new end time
-        LocalDateTime endTime = request.getStartTime().plusMinutes(movie.getDuration());
-
         // Check for overlapping showtimes (excluding current showtime)
         List<Showtime> overlappingShowtimes = showtimeRepository.findOverlappingShowtimes(
                 request.getTheater(),
                 request.getStartTime(),
-                endTime
+                request.getEndTime()
         ).stream()
                 .filter(s -> !s.getId().equals(id))
                 .toList();
@@ -94,7 +98,6 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         }
 
         showtimeMapper.updateEntity(existingShowtime, request, movie);
-        existingShowtime.setEndTime(endTime);
         showtimeRepository.save(existingShowtime);
     }
 

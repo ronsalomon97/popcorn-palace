@@ -16,4 +16,12 @@ public interface ShowtimeRepository extends JpaRepository<Showtime, Long> {
     List<Showtime> findOverlappingShowtimes(String theater, 
                                           LocalDateTime startTime, 
                                           LocalDateTime endTime);
+
+    /**
+     * Check if there are any showtimes for a specific movie
+     * 
+     * @param movieId the ID of the movie
+     * @return true if there are showtimes for the movie, false otherwise
+     */
+    boolean existsByMovieId(Long movieId);
 } 
