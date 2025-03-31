@@ -4,19 +4,20 @@ import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
 
 public class ShowtimeRequest {
-    @NotBlank(message = "Movie title is required")
+    @NotNull(message = "Movie title is required")
     private String movieTitle;
 
-    @NotBlank(message = "Theater is required")
+    @NotNull(message = "Theater is required")
     private String theater;
 
     @NotNull(message = "Start time is required")
     private LocalDateTime startTime;
 
-    @NotNull(message = "end time is required")
+    @NotNull(message = "End time is required")
     private LocalDateTime endTime;
 
-    @DecimalMin(value = "0.0", message = "Price must be positive")
+    @NotNull(message = "Price is required")
+    @Positive(message = "Price must be positive")
     private Double price;
 
     // Getters and Setters

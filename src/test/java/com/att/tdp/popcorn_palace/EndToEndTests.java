@@ -268,7 +268,7 @@ class EndToEndTests {
         request.setEndTime(LocalDateTime.now().plusDays(3).plusHours(2));
         request.setPrice(17.99);
 
-        mockMvc.perform(put("/showtimes/" + testShowtime.getId())
+        mockMvc.perform(post("/showtimes/update/" + testShowtime.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
@@ -278,12 +278,12 @@ class EndToEndTests {
     void updateShowtime_NonExistent() throws Exception {
         ShowtimeRequest request = new ShowtimeRequest();
         request.setTheater("Updated Theater");
-        request.setMovieTitle(testMovie.getTitle());§
+        request.setMovieTitle(testMovie.getTitle());
         request.setStartTime(LocalDateTime.now().plusDays(3));
         request.setEndTime(LocalDateTime.now().plusDays(3).plusHours(2));
         request.setPrice(17.99);
 
-        mockMvc.perform(put("/showtimes/999999")
+        mockMvc.perform(post("/showtimes/update/999999")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());

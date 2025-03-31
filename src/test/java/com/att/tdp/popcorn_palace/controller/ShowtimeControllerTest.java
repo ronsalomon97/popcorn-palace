@@ -2,6 +2,7 @@ package com.att.tdp.popcorn_palace.controller;
 
 import com.att.tdp.popcorn_palace.dto.request.ShowtimeRequest;
 import com.att.tdp.popcorn_palace.dto.response.ShowtimeResponse;
+import com.att.tdp.popcorn_palace.exception.GlobalExceptionHandler;
 import com.att.tdp.popcorn_palace.exception.ResourceNotFoundException;
 import com.att.tdp.popcorn_palace.exception.OverlappingShowtimeException;
 import com.att.tdp.popcorn_palace.service.ShowtimeService;
@@ -12,13 +13,21 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class ShowtimeControllerTest {
 
@@ -28,9 +37,18 @@ class ShowtimeControllerTest {
     @InjectMocks
     private ShowtimeController showtimeController;
 
+    private MockMvc mockMvc;
+    private ObjectMapper objectMapper;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        
+        mockMvc = MockMvcBuilders.standaloneSetup(showtimeController)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
     }
 
     @Test
@@ -100,20 +118,22 @@ class ShowtimeControllerTest {
     }
 
     @Test
-    void updateShowtime_Success() {
+    void updateShowtime_Success() throws Exception {
         // Arrange
         Long showtimeId = 1L;
+        LocalDateTime startTime = LocalDateTime.now();
         ShowtimeRequest request = createShowtimeRequest(
-            "Movie Title", "Theater 1", LocalDateTime.now(), 10.0
+            "Movie Title", "Theater 1", startTime, 10.0
         );
         doNothing().when(showtimeService).updateShowtime(anyLong(), any(ShowtimeRequest.class));
 
-        // Act
-        ResponseEntity<Void> response = showtimeController.updateShowtime(showtimeId, request);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(showtimeService).updateShowtime(showtimeId, request);
+        // Act & Assert
+        mockMvc.perform(post("/showtimes/update/" + showtimeId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+        
+        verify(showtimeService).updateShowtime(eq(showtimeId), any(ShowtimeRequest.class));
     }
 
     @Test
@@ -162,6 +182,7 @@ class ShowtimeControllerTest {
         request.setMovieTitle(movieTitle);
         request.setTheater(theater);
         request.setStartTime(startTime);
+        request.setEndTime(startTime.plusHours(2));
         request.setPrice(price);
         return request;
     }
