@@ -72,7 +72,7 @@ You can run all unit and end-to-end tests using either Maven Wrapper or installe
 
 #### Option 2: With Installed Maven
 ```bash
-mvn test
+mvn install && mvn test
 ```
 
 ### 📌 Test Details
@@ -97,53 +97,3 @@ mvn test
 - Runs on `port: 8081`
 
 ---
-
-## 📁 Project Structure
-
-```
-📦 popcorn-palace
-├── src
-│   ├── main
-│   │   ├── java/com.att.tdp.popcorn_palace
-│   │   │   ├── controller
-│   │   │   ├── service
-│   │   │   ├── model
-│   │   │   ├── dto/request & dto/response
-│   │   │   ├── mapper
-│   │   │   ├── exception
-│   │   │   └── config / logging
-│   │   └── resources
-│   │       ├── application.yaml
-│   │       ├── schema.sql
-│   │       └── data.sql
-│   ├── test
-│   │   ├── java/com.att.tdp.popcorn_palace
-│   │   │   ├── controller/
-│   │   │   ├── EndToEndTests.java
-│   │   │   └── config/TestConfig.java
-│   │   └── resources
-│   │       ├── application-test.yaml
-│   │       ├── schema-test.sql
-│   │       └── data-test.sql
-├── compose.yaml
-└── pom.xml
-```
-
----
-
-## 📝 Notes
-
-- Use `mvn clean install` or `./mvnw clean install` to verify build and tests before submission.
-- All tests use Spring's testing annotations and dependency injection.
-- Project is ready for local and production environments with minimal changes.
-
----
-
-## ✅ Submission
-
-Push your project to a **public Git repository**, and include the link in your HackerRank test. Make sure the following files are included:
-
-- Full source code and test suite
-- `compose.yaml`
-- `schema.sql`, `data.sql`, `application.yaml`
-- `Instructions.md` (this file)

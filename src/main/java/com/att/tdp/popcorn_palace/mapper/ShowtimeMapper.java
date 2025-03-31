@@ -6,8 +6,6 @@ import com.att.tdp.popcorn_palace.model.Movie;
 import com.att.tdp.popcorn_palace.model.Showtime;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-
 @Component
 public class ShowtimeMapper {
     
